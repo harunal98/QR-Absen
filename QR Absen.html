@@ -30,9 +30,9 @@
             display: inline-block;
         }
         #reader button {
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            color: white !important;
+            background: #f8fafc !important;
+            border: 1px solid #cbd5e1 !important;
+            color: #334155 !important;
             padding: 8px 16px !important;
             border-radius: 9999px !important;
             cursor: pointer;
@@ -42,7 +42,7 @@
             font-size: 0.875rem;
         }
         #reader button:hover {
-            background: rgba(255, 255, 255, 0.2) !important;
+            background: #e2e8f0 !important;
         }
         #reader a {
             color: #94a3b8 !important; 
@@ -53,25 +53,20 @@
         }
     </style>
 </head>
-<body class="bg-slate-950 bg-grid min-h-screen flex items-center justify-center p-4 relative overflow-hidden font-sans">
+<body class="bg-white min-h-screen flex items-center justify-center p-4 font-sans">
 
-    <!-- Efek Pendaran Cahaya (Glowing Orbs) -->
-    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-screen filter blur-[100px] opacity-30"></div>
-    <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-cyan-600 rounded-full mix-blend-screen filter blur-[100px] opacity-30"></div>
-
-    <!-- Panel Utama Glassmorphism -->
-    <div class="relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-8 rounded-3xl w-full max-w-md flex flex-col items-center">
+    <div class="bg-slate-50 border border-slate-200 shadow-lg p-8 rounded-3xl w-full max-w-md flex flex-col items-center">
         
-        <h1 class="text-3xl font-bold mb-1 text-white tracking-tight">Absensi<span class="text-cyan-400">QR</span></h1>
-        <p class="text-slate-300 text-sm mb-8 font-light">Sistem Presensi Digital Terpadu</p>
+        <h1 class="text-3xl font-bold mb-1 text-slate-800 tracking-tight">Absensi<span class="text-cyan-600">QR</span></h1>
+        <p class="text-slate-500 text-sm mb-8 font-light">Sistem Presensi Digital Terpadu</p>
         
         <!-- Frame Kamera -->
-        <div class="w-full mb-6 p-2 rounded-2xl bg-black/30 border border-white/10 shadow-inner">
+        <div class="w-full mb-6 p-2 rounded-2xl bg-white border border-slate-200 shadow-inner">
             <div id="reader" class="w-full overflow-hidden rounded-xl"></div>
         </div>
         
         <!-- Area Hasil Notifikasi bergaya Glass -->
-        <div id="result" class="w-full h-14 flex items-center justify-center px-4 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-medium transition-all duration-300 backdrop-blur-md shadow-sm">
+        <div id="result" class="w-full h-14 flex items-center justify-center px-4 rounded-xl border border-slate-200 bg-white text-slate-600 font-medium transition-all duration-300 shadow-sm">
             Kamera siap digunakan...
         </div>
         
@@ -87,16 +82,16 @@
             const resultDiv = document.getElementById('result');
             
             // Kelas dasar untuk tata letak dan efek kaca
-            let baseClasses = "w-full h-14 flex items-center justify-center px-4 rounded-xl backdrop-blur-md shadow-sm font-medium transition-all duration-300 border ";
+            let baseClasses = "w-full h-14 flex items-center justify-center px-4 rounded-xl shadow-sm font-medium transition-all duration-300 border ";
             
             if (state === 'loading') {
-                resultDiv.className = baseClasses + "bg-amber-500/20 border-amber-500/40 text-amber-200";
+                resultDiv.className = baseClasses + "bg-amber-100 border-amber-300 text-amber-700";
             } else if (state === 'success') {
-                resultDiv.className = baseClasses + "bg-emerald-500/20 border-emerald-500/40 text-emerald-200";
+                resultDiv.className = baseClasses + "bg-emerald-100 border-emerald-300 text-emerald-700";
             } else if (state === 'error') {
-                resultDiv.className = baseClasses + "bg-rose-500/20 border-rose-500/40 text-rose-200";
+                resultDiv.className = baseClasses + "bg-rose-100 border-rose-300 text-rose-700";
             } else { 
-                resultDiv.className = baseClasses + "bg-white/5 border-white/10 text-slate-300";
+                resultDiv.className = baseClasses + "bg-white border-slate-200 text-slate-600";
             }
             
             resultDiv.innerHTML = message;
