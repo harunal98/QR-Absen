@@ -8,91 +8,133 @@
     <script src="https://unpkg.com/html5-qrcode"></script>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Pola background transparent blueprint grid */
+        .bg-grid {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+        }
+        
+        /* CSS Tambahan untuk membersihkan UI bawaan html5-qrcode */
+        #reader {
+            border: none !important;
+            background: transparent !important;
+        }
+        #reader__dashboard_section_csr span, 
+        #reader__dashboard_section_swaplink {
+            color: #cbd5e1 !important; 
+            text-decoration: none !important;
+            margin-bottom: 10px;
+            display: inline-block;
+        }
+        #reader button {
+            background: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+            padding: 8px 16px !important;
+            border-radius: 9999px !important;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+            transition: all 0.3s ease;
+            margin: 5px;
+            font-size: 0.875rem;
+        }
+        #reader button:hover {
+            background: rgba(255, 255, 255, 0.2) !important;
+        }
+        #reader a {
+            color: #94a3b8 !important; 
+        }
+        #reader video {
+            border-radius: 1rem !important;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);
+        }
+    </style>
 </head>
-<body class="bg-slate-50 flex items-center justify-center min-h-screen p-4">
+<body class="bg-slate-950 bg-grid min-h-screen flex items-center justify-center p-4 relative overflow-hidden font-sans">
 
-    <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-md text-center border border-slate-100">
-        <h1 class="text-2xl font-bold mb-2 text-slate-800">Absensi Kelas</h1>
-        <p class="text-slate-500 text-sm mb-6">Arahkan kamera ke QR Code Siswa</p>
+    <!-- Efek Pendaran Cahaya (Glowing Orbs) -->
+    <div class="absolute top-[-10%] left-[-10%] w-96 h-96 bg-indigo-600 rounded-full mix-blend-screen filter blur-[100px] opacity-30"></div>
+    <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 bg-cyan-600 rounded-full mix-blend-screen filter blur-[100px] opacity-30"></div>
+
+    <!-- Panel Utama Glassmorphism -->
+    <div class="relative z-10 bg-white/10 backdrop-blur-xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.3)] p-8 rounded-3xl w-full max-w-md flex flex-col items-center">
+        
+        <h1 class="text-3xl font-bold mb-1 text-white tracking-tight">Absensi<span class="text-cyan-400">QR</span></h1>
+        <p class="text-slate-300 text-sm mb-8 font-light">Sistem Presensi Digital Terpadu</p>
         
         <!-- Frame Kamera -->
-        <div id="reader" class="w-full mb-6 overflow-hidden rounded-lg border-2 border-dashed border-slate-300"></div>
+        <div class="w-full mb-6 p-2 rounded-2xl bg-black/30 border border-white/10 shadow-inner">
+            <div id="reader" class="w-full overflow-hidden rounded-xl"></div>
+        </div>
         
-        <!-- Area Hasil Notifikasi -->
-        <div id="result" class="text-lg font-semibold h-12 flex items-center justify-center px-4 rounded-lg bg-slate-100 text-slate-600 transition-all duration-300">
+        <!-- Area Hasil Notifikasi bergaya Glass -->
+        <div id="result" class="w-full h-14 flex items-center justify-center px-4 rounded-xl border border-white/10 bg-white/5 text-slate-300 font-medium transition-all duration-300 backdrop-blur-md shadow-sm">
             Kamera siap digunakan...
         </div>
+        
     </div>
 
     <script>
-        // GANTI STRING DI BAWAH DENGAN URL WEB APP GOOGLE APPS SCRIPT-MU
+        // URL Web App kamu
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxYBxiWJj5S6xjbTKAouPFaO9eHfhJygGAFj9pXdHS56TpVs2xU02luC8cqW3A2R5TP/exec";
 
         let isScanning = false;
 
-        function onScanSuccess(decodedText, decodedResult) {
-            // Jika sedang memproses data, abaikan scan agar tidak dobel
-            if (isScanning) return; 
-            isScanning = true;
-
+        function updateResultUI(message, state) {
             const resultDiv = document.getElementById('result');
             
-            // UI Loading state
-            resultDiv.className = "text-lg font-semibold h-12 flex items-center justify-center px-4 rounded-lg bg-yellow-100 text-yellow-700 transition-all duration-300";
-            resultDiv.innerHTML = `Memproses NIS: ${decodedText}...`;
+            // Kelas dasar untuk tata letak dan efek kaca
+            let baseClasses = "w-full h-14 flex items-center justify-center px-4 rounded-xl backdrop-blur-md shadow-sm font-medium transition-all duration-300 border ";
+            
+            if (state === 'loading') {
+                resultDiv.className = baseClasses + "bg-amber-500/20 border-amber-500/40 text-amber-200";
+            } else if (state === 'success') {
+                resultDiv.className = baseClasses + "bg-emerald-500/20 border-emerald-500/40 text-emerald-200";
+            } else if (state === 'error') {
+                resultDiv.className = baseClasses + "bg-rose-500/20 border-rose-500/40 text-rose-200";
+            } else { 
+                resultDiv.className = baseClasses + "bg-white/5 border-white/10 text-slate-300";
+            }
+            
+            resultDiv.innerHTML = message;
+        }
 
-            // Kirim data ke API Google Sheets
-            fetch(`${SCRIPT_URL}?nis=${encodeURIComponent(decodedText)}`)
-                .then(async response => {
-                    const responseText = await response.text();
-                    let data;
+        function onScanSuccess(decodedText, decodedResult) {
+            if (isScanning) return; 
+            isScanning = true;
+            
+            updateResultUI(`<span class="animate-pulse">Memproses NIS: ${decodedText}...</span>`, 'loading');
 
-                    try {
-                        data = JSON.parse(responseText);
-                    } catch (error) {
-                        throw new Error("Respons server bukan JSON yang valid.");
-                    }
-
-                    if (!response.ok || data.status === "error") {
-                        throw new Error(data.message || `Server mengembalikan HTTP ${response.status}.`);
-                    }
-
-                    return data;
-                })
+            fetch(`${SCRIPT_URL}?nis=${decodedText}`)
+                .then(response => response.json())
                 .then(data => {
                     if (data.status === "success") {
-                        // Jika berhasil (Nama ditemukan dan dicatat)
-                        resultDiv.className = "text-lg font-semibold h-12 flex items-center justify-center px-4 rounded-lg bg-emerald-100 text-emerald-700 transition-all duration-300 shadow-sm";
-                        resultDiv.innerHTML = `✅ ${data.message}`;
+                        updateResultUI(`✅ ${data.message}`, 'success');
                     } else {
-                        // Jika gagal (NIS tidak ada di database)
-                        resultDiv.className = "text-lg font-semibold h-12 flex items-center justify-center px-4 rounded-lg bg-red-100 text-red-700 transition-all duration-300";
-                        resultDiv.innerHTML = `❌ ${data.message}`;
+                        updateResultUI(`❌ ${data.message}`, 'error');
                     }
                     
-                    // Jeda 3.5 detik sebelum kamera siap nge-scan siswa berikutnya
                     setTimeout(() => {
-                        resultDiv.className = "text-lg font-semibold h-12 flex items-center justify-center px-4 rounded-lg bg-slate-100 text-slate-600 transition-all duration-300";
-                        resultDiv.innerHTML = "Kamera siap digunakan...";
+                        updateResultUI("Kamera siap digunakan...", 'default');
                         isScanning = false;
                     }, 3500);
                 })
                 .catch(error => {
-                    resultDiv.className = "text-lg font-semibold h-12 flex items-center justify-center px-4 rounded-lg bg-red-100 text-red-700 transition-all duration-300";
-                    resultDiv.textContent = error.message.includes("Respons server")
-                        ? "Server error: cek konfigurasi Google Sheets."
-                        : error.message;
+                    updateResultUI(`⚠️ Gagal menghubungi server!`, 'error');
                     setTimeout(() => {
+                        updateResultUI("Kamera siap digunakan...", 'default');
                         isScanning = false;
                     }, 3500);
                 });
         }
 
         function onScanFailure(error) {
-            // Tidak perlu log error terus-menerus karena library akan terus mencoba membaca frame
+            // Mengabaikan error render frame bawaan library
         }
 
-        // Inisialisasi konfigurasi scanner
         let html5QrcodeScanner = new Html5QrcodeScanner(
             "reader",
             { 
