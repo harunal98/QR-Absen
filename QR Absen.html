@@ -42,8 +42,23 @@
             resultDiv.innerHTML = `Memproses NIS: ${decodedText}...`;
 
             // Kirim data ke API Google Sheets
-            fetch(`${SCRIPT_URL}?nis=${decodedText}`)
-                .then(response => response.json())
+            fetch(`${SCRIPT_URL}?nis=${encodeURIComponent(decodedText)}`)
+                .then(async response => {
+                    const responseText = await response.text();
+                    let data;
+
+                    try {
+                        data = JSON.parse(responseText);
+                    } catch (error) {
+                        throw new Error("Respons server bukan JSON yang valid.");
+                    }
+
+                    if (!response.ok || data.status === "error") {
+                        throw new Error(data.message || `Server mengembalikan HTTP ${response.status}.`);
+                    }
+
+                    return data;
+                })
                 .then(data => {
                     if (data.status === "success") {
                         // Jika berhasil (Nama ditemukan dan dicatat)
@@ -64,7 +79,9 @@
                 })
                 .catch(error => {
                     resultDiv.className = "text-lg font-semibold h-12 flex items-center justify-center px-4 rounded-lg bg-red-100 text-red-700 transition-all duration-300";
-                    resultDiv.innerHTML = `Gagal menghubungi server!`;
+                    resultDiv.textContent = error.message.includes("Respons server")
+                        ? "Server error: cek konfigurasi Google Sheets."
+                        : error.message;
                     setTimeout(() => {
                         isScanning = false;
                     }, 3500);
